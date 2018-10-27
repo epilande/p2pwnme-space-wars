@@ -5,10 +5,18 @@ import shipImg from "../assets/ship.png";
 import bulletImg from "../assets/bullets.png";
 
 import Bullet from "./bullet";
+import OP from "./OP";
+import WS from "./wsClient";
 
 class Game extends Phaser.Scene {
   constructor() {
     super({ key: "Game" });
+
+    WS.Connect();
+    WS.Client.addEventListener(WS.Event.message, this.onClientMessage);
+    WS.Client.addEventListener(WS.Event.open, this.onClientConnect);
+    WS.Client.addEventListener(WS.Event.error, this.onClientError);
+    WS.Client.addEventListener(WS.Event.close, this.onClientClose);
   }
 
   preload() {
@@ -49,6 +57,9 @@ class Game extends Phaser.Scene {
       },
       this
     );
+
+    // send self to wss
+    WS.Send.Register();
   }
 
   update() {
@@ -74,6 +85,57 @@ class Game extends Phaser.Scene {
     }
 
     this.physics.world.wrap(this.player, 20);
+  }
+
+  onClientMessage({ data }) {
+    const msg = OP.parse(data);
+    switch( msg.OP ){
+      case OP.REGISTERACK:
+        // nothing to do
+        break;
+      case OP.NEW_PLAYER:
+        console.log('OP:NEW_PLAYER', msg.payload);
+        // { playerId } = msg.payload;
+        // addPlayer(playerId);
+        break;
+      case OP.REMOVE_PLAYER:
+        console.log('OP:REMOVE_PLAYER', msg.payload);
+        // { playerId } = msg.payload;
+        // removePlayer(playerId);
+        break;
+      case OP.MOVE_TO:
+        console.log('OP:MOVE_TO', msg.payload);
+        // { playerId, position } = msg.payload;
+        // playerMovesTo(playerId, position)
+        break;
+      case OP.ERROR:
+        // # TODO display error to user
+        console.error(msg.payload);
+        break;
+      default:
+        console.error(msg.payload);
+    }
+  }
+
+  onClientConnect() {
+    // render the main game
+    console.log('client connected');
+  }
+
+  onClientError(error) {
+    console.error(error);
+    console.log('@TODO DISPLAY DISCONNECTED');
+  }
+
+  onClientClose() {
+    console.log('@TODO DISPLAY DISCONNECTED');
+  }
+
+  shutdown() {
+    WS.Client.removeEventListener(WS.Event.message, this.onClientMessage);
+    WS.Client.removeEventListener(WS.Event.open, this.onClientConnect);
+    WS.Client.removeEventListener(WS.Event.error, this.onClientError);
+    WS.Client.removeEventListener(WS.Event.close, this.onClientClose);
   }
 }
 
