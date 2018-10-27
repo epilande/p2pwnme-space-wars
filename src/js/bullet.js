@@ -13,7 +13,7 @@ const Bullet = new Phaser.Class({
     this.setSize(12, 12, true);
   },
 
-  fire: function(shooter, target) {
+  fire: function(shooter) {
     this.setPosition(shooter.x, shooter.y); // Initial position
 
     this.body.world.scene.physics.velocityFromRotation(

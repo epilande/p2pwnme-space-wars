@@ -64,6 +64,12 @@ const receiveOp = function(msg){
         player.sendOp(OP.MOVE_TO, { playerId: this.playerId, ...msg.payload });
       });
       break;
+    case OP.FIRE_BULLET:
+      players.forEach( (player, playerUsername, map) => {
+        if(player === this) return;
+        player.sendOp(OP.FIRE_BULLET, { playerId: this.playerId, ...msg.payload });
+      });
+      break;
     case OP.STOP_MOVING:
       players.forEach( (player) => {
         if(player === this) return

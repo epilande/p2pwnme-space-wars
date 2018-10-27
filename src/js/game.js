@@ -54,12 +54,12 @@ class Game extends Phaser.Scene {
   update() {
     this.playerInputControls();
 
-    // this.sendPosThrottled();
+    this.sendPosThrottled();
+
     this.physics.world.wrap(this.player, 20);
   }
 
   handleOtherPlayerMovement(playerUpdate) {
-    console.log("playerUpdate", playerUpdate);
     const player = this.players.get(playerUpdate.playerId);
 
     if (!player)
@@ -77,6 +77,26 @@ class Game extends Phaser.Scene {
 
     player.setPosition(playerUpdate.x, playerUpdate.y);
     player.setRotation(playerUpdate.rotation);
+  }
+
+  handleOtherBullets(playerUpdate) {
+    console.log("playerUpdate", playerUpdate);
+    const player = this.players.get(playerUpdate.playerId);
+
+    if (!player)
+      return console.warn(
+        "cannot find player by playerId",
+        playerUpdate.playerId
+      );
+
+    const bullet = player.playerBullets
+      .get()
+      .setActive(true)
+      .setVisible(true);
+
+    if (bullet) {
+      bullet.fire(player);
+    }
   }
 
   playerInputControls() {
@@ -108,6 +128,7 @@ class Game extends Phaser.Scene {
 
       if (bullet) {
         bullet.fire(this.player);
+        WS.Send.FireBullet();
       }
     }
   }
@@ -168,6 +189,9 @@ class Game extends Phaser.Scene {
         break;
       case OP.MOVE_TO:
         this.handleOtherPlayerMovement(msg.payload);
+        break;
+      case OP.FIRE_BULLET:
+        this.handleOtherBullets(msg.payload);
         break;
       case OP.ERROR:
         // # TODO display error to user
