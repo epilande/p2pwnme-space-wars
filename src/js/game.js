@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import throttle from "lodash/throttle";
 
 import spaceImg from "../assets/space.jpg";
 import shipImg from "../assets/ship.png";
@@ -12,10 +13,14 @@ class Game extends Phaser.Scene {
   constructor() {
     super({ key: "Game" });
 
+    // me
+    this.player = null;
+
     // playerId -> player
     this.players = new Map();
 
     this.onClientMessage = this.onClientMessage.bind(this);
+    this.sendPosThrottled = throttle(this.sendPosThrottled, 1000);
 
     WS.Connect();
     WS.Client.addEventListener(WS.Event.message, this.onClientMessage);
@@ -31,6 +36,9 @@ class Game extends Phaser.Scene {
   }
 
   create() {
+    // Create movement controller
+    this.cursors = this.input.keyboard.createCursorKeys();
+
     this.add.tileSprite(400, 300, 800, 600, "space");
 
     // Create Player                v--- we don't care about self id
@@ -60,9 +68,32 @@ class Game extends Phaser.Scene {
   }
 
   update() {
-    // Create movement controller
-    this.cursors = this.input.keyboard.createCursorKeys();
 
+    this.playerInputControls();
+
+    this.sendPosThrottled();
+
+    this.physics.world.wrap(this.player, 20);
+  }
+
+  handleOtherPlayerMovement(playerUpdate) {
+    // const player = this.players.get(playerUpdate.playerId);
+    // if(!player){
+    //   console.warn('cannot find player by playerId', playerUpdate.playerId, 'removed from map');
+    //   this.players.delete(playerUpdate.playerId);
+    //   return
+    // }
+
+    // player.setAngularVelocity(player.angularVelocity);
+    // // this.physics.velocityFromRotation(
+    // //   playerUpdate.rotation,
+    // //   200,
+    // //   player.body.acceleration
+    // // );
+    // player.setAcceleration(playerUpdate.acceleration);
+  }
+
+  playerInputControls() {
     if (this.cursors.left.isDown) {
       this.player.setAngularVelocity(-150);
     } else if (this.cursors.right.isDown) {
@@ -81,11 +112,10 @@ class Game extends Phaser.Scene {
       this.player.setAcceleration(0);
     }
 
-    this.physics.world.wrap(this.player, 20);
   }
 
   createPlayer(id, x, y) {
-    const player = this.physics.add.sprite(100, 450, "ship");
+    const player = this.physics.add.sprite(x, y, "ship");
     player.id = id;
     player.setDamping(true);
     player.setDrag(0.99);
@@ -99,13 +129,23 @@ class Game extends Phaser.Scene {
     return player;
   }
 
+  sendPosThrottled() {
+    WS.Send.MoveTo({
+      x : this.player.x,
+      y : this.player.y,
+      rotation : this.player.rotation,
+      angularVelocity : this.player.angularVelocity,
+      acceleration : this.player.body.acceleration
+    });
+  }
+
   addPlayer({ playerId, position }){
     const newPlayer = this.createPlayer(playerId, position.x, position.y);
     this.players.set(playerId, newPlayer);
   }
 
   loadOtherPlayers(players){
-    console.log('loadOtherPlayers', players);
+    players.forEach(p => this.addPlayer(p));
   }
 
   onClientMessage({ data }) {
@@ -126,16 +166,14 @@ class Game extends Phaser.Scene {
         // this.removePlayer(playerId);
         break;
       case OP.MOVE_TO:
-        console.log('OP:MOVE_TO', msg.payload);
-        // { playerId, position } = msg.payload;
-        // this.playerMovesTo(playerId, position)
+        this.handleOtherPlayerMovement(msg.payload);
         break;
       case OP.ERROR:
         // # TODO display error to user
         console.error(msg.payload);
         break;
       default:
-        console.error(msg.payload);
+        console.error(msg);
     }
   }
 

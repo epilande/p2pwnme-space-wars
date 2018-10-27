@@ -40,7 +40,7 @@ const receiveOp = function(msg){
     case OP.ENTER_WORLD:
       // give current player initial state of the game
       this.sendOp(OP.ENTER_WORLD_ACK,
-        [ ...players.values() ].map(({
+        [ ...players.values() ].filter(p => p.playerId !== this.playerId).map(({
           playerId,
           position
         }) => ({
@@ -59,11 +59,9 @@ const receiveOp = function(msg){
       });
       break;
     case OP.MOVE_TO:
-      let position = msg.payload;
-      this.position = position;
       players.forEach( (player, playerUsername, map) => {
         if(player === this) return;
-        player.sendOp(OP.MOVE_TO, { playerId: this.playerId, position });
+        player.sendOp(OP.MOVE_TO, { playerId: this.playerId, ...msg.payload });
       });
       break;
     case OP.STOP_MOVING:
