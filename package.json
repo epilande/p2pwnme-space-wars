@@ -1,0 +1,27 @@
+{
+  "name": "p2pwnme-space-wars",
+  "version": "1.0.0",
+  "description": "Multiplayer P2PWN game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "env $(cat .env | xargs) node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epilande/p2pwnme-space-wars.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/epilande/p2pwnme-space-wars/issues"
+  },
+  "homepage": "https://github.com/epilande/p2pwnme-space-wars#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "localtunnel": "^1.9.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "ws": "^6.1.0"
+  }
+}
