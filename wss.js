@@ -1,3 +1,5 @@
+const express = require('express');
+const app = express();
 const http = require('http');
 const WebSocket = require('ws');
 
@@ -12,5 +14,7 @@ wss.on('connection', function connection(ws) {
   ws.send('connected');
 });
 
+app.use(express.static('./public'));
+server.on('request', app);
 
 module.exports = server;
