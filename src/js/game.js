@@ -36,31 +36,15 @@ class Game extends Phaser.Scene {
   }
 
   create() {
-    // Create movement controller
-    this.cursors = this.input.keyboard.createCursorKeys();
-
     this.add.tileSprite(400, 300, 800, 600, "space");
 
     // Create Player                v--- we don't care about self id
     this.player = this.createPlayer(null, 100, 450);
 
-    // Fires bullet from player on left click of mouse
-    this.input.on(
-      "pointerdown",
-      function(pointer, time, lastFired) {
-        if (this.player.active === false) return;
-
-        // Get bullet from bullets group
-        var bullet = this.player.playerBullets
-          .get()
-          .setActive(true)
-          .setVisible(true);
-
-        if (bullet) {
-          bullet.fire(this.player, pointer);
-        }
-      },
-      this
+    // Create movement controller
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.spacebar = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
     );
 
     // send self to wss
@@ -68,18 +52,21 @@ class Game extends Phaser.Scene {
   }
 
   update() {
-
     this.playerInputControls();
 
     this.sendPosThrottled();
 
+    this.physics.world.wrap(this.player, 20);
   }
 
   handleOtherPlayerMovement(playerUpdate) {
-    console.log('playerUpdate', playerUpdate);
     const player = this.players.get(playerUpdate.playerId);
 
-    if(!player) return console.warn('cannot find player by playerId', playerUpdate.playerId);
+    if (!player)
+      return console.warn(
+        "cannot find player by playerId",
+        playerUpdate.playerId
+      );
 
     // phaser 3?
     // this.physics.accelerateToXY(player, playerUpdate.x, playerUpdate.y);
@@ -90,6 +77,26 @@ class Game extends Phaser.Scene {
 
     player.setPosition(playerUpdate.x, playerUpdate.y);
     player.setRotation(playerUpdate.rotation);
+  }
+
+  handleOtherBullets(playerUpdate) {
+    console.log("playerUpdate", playerUpdate);
+    const player = this.players.get(playerUpdate.playerId);
+
+    if (!player)
+      return console.warn(
+        "cannot find player by playerId",
+        playerUpdate.playerId
+      );
+
+    const bullet = player.playerBullets
+      .get()
+      .setActive(true)
+      .setVisible(true);
+
+    if (bullet) {
+      bullet.fire(player);
+    }
   }
 
   playerInputControls() {
@@ -111,6 +118,19 @@ class Game extends Phaser.Scene {
       this.player.setAcceleration(0);
     }
 
+    if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
+      if (!this.player.active) return;
+
+      const bullet = this.player.playerBullets
+        .get()
+        .setActive(true)
+        .setVisible(true);
+
+      if (bullet) {
+        bullet.fire(this.player);
+        WS.Send.FireBullet();
+      }
+    }
   }
 
   createPlayer(id, x, y) {
@@ -125,35 +145,34 @@ class Game extends Phaser.Scene {
       runChildUpdate: true
     });
 
-    this.physics.world.wrap(player, 20);
-
     return player;
   }
 
   sendPosThrottled() {
     WS.Send.MoveTo({
-      x : this.player.x,
-      y : this.player.y,
-      rotation : this.player.rotation,
-      angularVelocity : this.player.angularVelocity,
-      acceleration : this.player.body.acceleration,
-      velocity : this.player.body.velocity,
+      x: this.player.x,
+      y: this.player.y,
+      rotation: this.player.rotation,
+      angularVelocity: this.player.angularVelocity,
+      acceleration: this.player.body.acceleration,
+      velocity: this.player.body.velocity
     });
   }
 
-  addPlayer({ playerId, position }){
+  addPlayer({ playerId, position }) {
     const newPlayer = this.createPlayer(playerId, position.x, position.y);
     this.players.set(playerId, newPlayer);
   }
 
-  loadOtherPlayers(players){
+  loadOtherPlayers(players) {
     players.forEach(p => this.addPlayer(p));
   }
 
   onClientMessage({ data }) {
     const msg = OP.parse(data);
-    switch( msg.OP ){
-      case OP.PONG: break;
+    switch (msg.OP) {
+      case OP.PONG:
+        break;
       case OP.REGISTERACK:
         WS.Send.EnterWorld();
         break;
@@ -164,12 +183,15 @@ class Game extends Phaser.Scene {
         this.addPlayer(msg.payload);
         break;
       case OP.REMOVE_PLAYER:
-        console.log('OP:REMOVE_PLAYER', msg.payload);
+        console.log("OP:REMOVE_PLAYER", msg.payload);
         // { playerId } = msg.payload;
         // this.removePlayer(playerId);
         break;
       case OP.MOVE_TO:
         this.handleOtherPlayerMovement(msg.payload);
+        break;
+      case OP.FIRE_BULLET:
+        this.handleOtherBullets(msg.payload);
         break;
       case OP.ERROR:
         // # TODO display error to user
@@ -182,16 +204,16 @@ class Game extends Phaser.Scene {
 
   onClientConnect() {
     // render the main game
-    console.log('client connected');
+    console.log("client connected");
   }
 
   onClientError(error) {
     console.error(error);
-    console.log('@TODO DISPLAY DISCONNECTED');
+    console.log("@TODO DISPLAY DISCONNECTED");
   }
 
   onClientClose() {
-    console.log('@TODO DISPLAY DISCONNECTED');
+    console.log("@TODO DISPLAY DISCONNECTED");
   }
 
   shutdown() {
