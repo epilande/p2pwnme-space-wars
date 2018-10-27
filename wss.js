@@ -14,7 +14,7 @@ wss.on('connection', function connection(ws) {
   ws.send('connected');
 });
 
-app.use(express.static('./public'));
+app.use(express.static('./dist'));
 server.on('request', app);
 
 module.exports = server;
