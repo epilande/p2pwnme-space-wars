@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
-import constants from "./config/constants";
-import GameScene from "./scenes/game";
+import constants from "./constants";
+import GameScene from "./game";
 
 const config = {
   type: Phaser.AUTO,
@@ -11,9 +11,9 @@ const config = {
     default: "arcade",
     arcade: {
       gravity: {
-        y: 200
+        y: 0
       },
-      debug: false
+      debug: true
     }
   },
   scene: [GameScene]
