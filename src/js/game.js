@@ -5,6 +5,7 @@ import spaceImg from "../assets/space.jpg";
 import shipImg from "../assets/ship.png";
 import bulletImg from "../assets/bullets.png";
 
+import { randomNumber } from "./utils";
 import Bullet from "./bullet";
 import OP from "./OP";
 import WS from "./wsClient";
@@ -39,7 +40,11 @@ class Game extends Phaser.Scene {
     this.add.tileSprite(400, 300, 800, 600, "space");
 
     // Create Player                v--- we don't care about self id
-    this.player = this.createPlayer(null, 100, 450);
+    this.player = this.createPlayer(
+      null,
+      randomNumber(50, 750),
+      randomNumber(50, 550)
+    );
 
     // Create movement controller
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -68,13 +73,6 @@ class Game extends Phaser.Scene {
         "cannot find player by playerId",
         playerUpdate.playerId
       );
-
-    // phaser 3?
-    // this.physics.accelerateToXY(player, playerUpdate.x, playerUpdate.y);
-    // player.body.velocity = playerUpdate.velocity;
-
-    // player.setAngularVelocity(player.angularVelocity);
-    // player.setAcceleration(playerUpdate.acceleration);
 
     player.setPosition(playerUpdate.x, playerUpdate.y);
     player.setRotation(playerUpdate.rotation);
@@ -141,6 +139,7 @@ class Game extends Phaser.Scene {
     player.setDamping(true);
     player.setDrag(0.99);
     player.setMaxVelocity(200);
+    player.setRotation(randomNumber(-3, 3));
 
     player.playerBullets = this.physics.add.group({
       classType: Bullet,
