@@ -12,6 +12,11 @@ class Game extends Phaser.Scene {
   constructor() {
     super({ key: "Game" });
 
+    // playerId -> player
+    this.players = new Map();
+
+    this.onClientMessage = this.onClientMessage.bind(this);
+
     WS.Connect();
     WS.Client.addEventListener(WS.Event.message, this.onClientMessage);
     WS.Client.addEventListener(WS.Event.open, this.onClientConnect);
@@ -28,16 +33,8 @@ class Game extends Phaser.Scene {
   create() {
     this.add.tileSprite(400, 300, 800, 600, "space");
 
-    // Create Player
-    this.player = this.physics.add.sprite(100, 450, "ship");
-    this.player.setDamping(true);
-    this.player.setDrag(0.99);
-    this.player.setMaxVelocity(200);
-
-    this.playerBullets = this.physics.add.group({
-      classType: Bullet,
-      runChildUpdate: true
-    });
+    // Create Player                v--- we don't care about self id
+    this.player = this.createPlayer(null, 100, 450);
 
     // Fires bullet from player on left click of mouse
     this.input.on(
@@ -46,7 +43,7 @@ class Game extends Phaser.Scene {
         if (this.player.active === false) return;
 
         // Get bullet from bullets group
-        var bullet = this.playerBullets
+        var bullet = this.player.playerBullets
           .get()
           .setActive(true)
           .setVisible(true);
@@ -87,26 +84,51 @@ class Game extends Phaser.Scene {
     this.physics.world.wrap(this.player, 20);
   }
 
+  createPlayer(id, x, y) {
+    const player = this.physics.add.sprite(100, 450, "ship");
+    player.id = id;
+    player.setDamping(true);
+    player.setDrag(0.99);
+    player.setMaxVelocity(200);
+
+    player.playerBullets = this.physics.add.group({
+      classType: Bullet,
+      runChildUpdate: true
+    });
+
+    return player;
+  }
+
+  addPlayer({ playerId, position }){
+    const newPlayer = this.createPlayer(playerId, position.x, position.y);
+    this.players.set(playerId, newPlayer);
+  }
+
+  loadOtherPlayers(players){
+    console.log('loadOtherPlayers', players);
+  }
+
   onClientMessage({ data }) {
     const msg = OP.parse(data);
     switch( msg.OP ){
       case OP.REGISTERACK:
-        // nothing to do
+        WS.Send.EnterWorld();
+        break;
+      case OP.ENTER_WORLD_ACK:
+        this.loadOtherPlayers(msg.payload);
         break;
       case OP.NEW_PLAYER:
-        console.log('OP:NEW_PLAYER', msg.payload);
-        // { playerId } = msg.payload;
-        // addPlayer(playerId);
+        this.addPlayer(msg.payload);
         break;
       case OP.REMOVE_PLAYER:
         console.log('OP:REMOVE_PLAYER', msg.payload);
         // { playerId } = msg.payload;
-        // removePlayer(playerId);
+        // this.removePlayer(playerId);
         break;
       case OP.MOVE_TO:
         console.log('OP:MOVE_TO', msg.payload);
         // { playerId, position } = msg.payload;
-        // playerMovesTo(playerId, position)
+        // this.playerMovesTo(playerId, position)
         break;
       case OP.ERROR:
         // # TODO display error to user

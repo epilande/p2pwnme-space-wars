@@ -31,6 +31,9 @@ const WS = {
     Register : () => {
       WS.Client.send( OP.create( OP.REGISTER ) );
     },
+    EnterWorld : () => {
+      WS.Client.send( OP.create( OP.ENTER_WORLD ) );
+    },
     MoveTo : position => {
       WS.Client.send( OP.create( OP.MOVE_TO, position ) );
     }
