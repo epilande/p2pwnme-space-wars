@@ -20,7 +20,7 @@ class Game extends Phaser.Scene {
     this.players = new Map();
 
     this.onClientMessage = this.onClientMessage.bind(this);
-    this.sendPosThrottled = throttle(this.sendPosThrottled, 1000);
+    this.sendPosThrottled = throttle(this.sendPosThrottled, 10);
 
     WS.Connect();
     WS.Client.addEventListener(WS.Event.message, this.onClientMessage);
@@ -73,24 +73,23 @@ class Game extends Phaser.Scene {
 
     this.sendPosThrottled();
 
-    this.physics.world.wrap(this.player, 20);
   }
 
   handleOtherPlayerMovement(playerUpdate) {
-    // const player = this.players.get(playerUpdate.playerId);
-    // if(!player){
-    //   console.warn('cannot find player by playerId', playerUpdate.playerId, 'removed from map');
-    //   this.players.delete(playerUpdate.playerId);
-    //   return
-    // }
+    console.log('playerUpdate', playerUpdate);
+    const player = this.players.get(playerUpdate.playerId);
+
+    if(!player) return console.warn('cannot find player by playerId', playerUpdate.playerId);
+
+    // phaser 3?
+    // this.physics.accelerateToXY(player, playerUpdate.x, playerUpdate.y);
+    // player.body.velocity = playerUpdate.velocity;
 
     // player.setAngularVelocity(player.angularVelocity);
-    // // this.physics.velocityFromRotation(
-    // //   playerUpdate.rotation,
-    // //   200,
-    // //   player.body.acceleration
-    // // );
     // player.setAcceleration(playerUpdate.acceleration);
+
+    player.setPosition(playerUpdate.x, playerUpdate.y);
+    player.setRotation(playerUpdate.rotation);
   }
 
   playerInputControls() {
@@ -126,6 +125,8 @@ class Game extends Phaser.Scene {
       runChildUpdate: true
     });
 
+    this.physics.world.wrap(player, 20);
+
     return player;
   }
 
@@ -135,7 +136,8 @@ class Game extends Phaser.Scene {
       y : this.player.y,
       rotation : this.player.rotation,
       angularVelocity : this.player.angularVelocity,
-      acceleration : this.player.body.acceleration
+      acceleration : this.player.body.acceleration,
+      velocity : this.player.body.velocity,
     });
   }
 
@@ -151,6 +153,7 @@ class Game extends Phaser.Scene {
   onClientMessage({ data }) {
     const msg = OP.parse(data);
     switch( msg.OP ){
+      case OP.PONG: break;
       case OP.REGISTERACK:
         WS.Send.EnterWorld();
         break;

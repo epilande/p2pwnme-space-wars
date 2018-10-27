@@ -1,8 +1,8 @@
 import OP from "./OP";
 
 const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-// const host = window.document.location.host;
-const host = 'localhost:3000';
+const host = window.document.location.host;
+// const host = 'localhost:3000';
 
 /*
  * Call Game.WS.Connect before using the client
