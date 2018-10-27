@@ -15,8 +15,8 @@ const host = 'localhost:3000';
 const WS = {
   Client : null,
   Connect : _ => {
-    this.Client = new WebSocket(protocol + host);
-    setInterval(this.Send.Ping, 30000);
+    WS.Client = new WebSocket(protocol + host);
+    setInterval(WS.Send.Ping, 30000);
   },
   Event : {
     open : 'open',
@@ -26,13 +26,13 @@ const WS = {
   },
   Send : {
     Ping : () => {
-      this.Client.send( OP.create( OP.PING ) );
+      WS.Client.send( OP.create( OP.PING ) );
     },
     Register : () => {
-      this.Client.send( OP.create( OP.REGISTER ) );
+      WS.Client.send( OP.create( OP.REGISTER ) );
     },
     MoveTo : position => {
-      this.Client.send( OP.create( OP.MOVE_TO, position ) );
+      WS.Client.send( OP.create( OP.MOVE_TO, position ) );
     }
   }
 };

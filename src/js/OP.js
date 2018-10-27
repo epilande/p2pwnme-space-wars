@@ -42,4 +42,4 @@ const OP = {
   MOVE_TO,
 };
 
-export default OP;
+module.exports = OP;
