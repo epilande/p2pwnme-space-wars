@@ -178,6 +178,12 @@ class Game extends Phaser.Scene {
     }
   }
 
+  removePlayer({ playerId }) {
+    const player = this.players.get(playerId);
+    player.destroy();
+    this.players.delete(playerId);
+  }
+
   onClientMessage({ data }) {
     const msg = OP.parse(data);
     switch (msg.OP) {
@@ -193,9 +199,7 @@ class Game extends Phaser.Scene {
         this.addPlayer(msg.payload);
         break;
       case OP.REMOVE_PLAYER:
-        console.log("OP:REMOVE_PLAYER", msg.payload);
-        // { playerId } = msg.payload;
-        // this.removePlayer(playerId);
+        this.removePlayer(msg.payload);
         break;
       case OP.MOVE_TO:
         this.handleOtherPlayerMovement(msg.payload);
