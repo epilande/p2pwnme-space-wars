@@ -52,9 +52,10 @@ class Game extends Phaser.Scene {
   }
 
   update() {
-    this.playerInputControls();
-
-    this.sendPosThrottled();
+    if (this.player.active) {
+      this.playerInputControls();
+      this.sendPosThrottled();
+    }
 
     this.physics.world.wrap(this.player, 20);
   }
@@ -80,7 +81,6 @@ class Game extends Phaser.Scene {
   }
 
   handleOtherBullets(playerUpdate) {
-    console.log("playerUpdate", playerUpdate);
     const player = this.players.get(playerUpdate.playerId);
 
     if (!player)
@@ -96,6 +96,7 @@ class Game extends Phaser.Scene {
 
     if (bullet) {
       bullet.fire(player);
+      this.physics.add.collider(bullet, this.player, this.handleEnemyHit);
     }
   }
 
@@ -119,8 +120,6 @@ class Game extends Phaser.Scene {
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
-      if (!this.player.active) return;
-
       const bullet = this.player.playerBullets
         .get()
         .setActive(true)
@@ -128,6 +127,9 @@ class Game extends Phaser.Scene {
 
       if (bullet) {
         bullet.fire(this.player);
+        for (const player of this.players.values()) {
+          this.physics.add.collider(bullet, player, this.handleEnemyHit);
+        }
         WS.Send.FireBullet();
       }
     }
@@ -166,6 +168,14 @@ class Game extends Phaser.Scene {
 
   loadOtherPlayers(players) {
     players.forEach(p => this.addPlayer(p));
+  }
+
+  handleEnemyHit(bullet, enemy) {
+    if (bullet.active && enemy.active) {
+      // destroy bullet
+      bullet.setActive(false).setVisible(false);
+      enemy.destroy();
+    }
   }
 
   onClientMessage({ data }) {
