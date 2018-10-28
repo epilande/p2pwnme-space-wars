@@ -13,6 +13,7 @@ import WS from "./wsClient";
 class Game extends Phaser.Scene {
   constructor() {
     super({ key: "Game" });
+    this.score = 0;
 
     // me
     this.player = null;
@@ -58,6 +59,11 @@ class Game extends Phaser.Scene {
       active: false
     });
 
+    this.scoreText = this.add.text(20, 16, "Score: 0", {
+      fontSize: "32px",
+      fill: "#fff"
+    });
+
     // Create movement controller
     this.cursors = this.input.keyboard.createCursorKeys();
     this.spacebar = this.input.keyboard.addKey(
@@ -82,7 +88,6 @@ class Game extends Phaser.Scene {
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     const windowRatio = windowWidth / windowHeight;
-    console.log("this.game: ", this);
     const gameRatio = constants.WIDTH / constants.HEIGHT;
 
     if (windowRatio < gameRatio) {
@@ -209,7 +214,10 @@ class Game extends Phaser.Scene {
       this.particleEmitter.setPosition(enemy.x, enemy.y);
       this.particleEmitter.explode();
 
-      if (this.player.active === false) {
+      if (this.player.active) {
+        this.score += 1;
+        this.scoreText.setText(`Score: ${this.score}`);
+      } else if (this.player.active === false) {
         this.gameOverText = this.add.text(
           this.game.config.width / 2,
           this.game.config.height / 2,
@@ -236,6 +244,8 @@ class Game extends Phaser.Scene {
     this.gameOverText.destroy();
     this.playAgainText.destroy();
 
+    this.score = 0;
+    this.scoreText.setText(`Score: ${this.score}`);
     this.player = this.createPlayer(
       null,
       randomNumber(50, constants.WIDTH - 50),
