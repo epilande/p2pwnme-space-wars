@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import throttle from "lodash/throttle";
 
-import spaceImg from "../assets/space.jpg";
 import shipImg from "../assets/ship.png";
 import bulletImg from "../assets/bullets.png";
 
@@ -32,14 +31,11 @@ class Game extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("space", spaceImg);
     this.load.image("bullet", bulletImg);
-    this.load.spritesheet("ship", shipImg, { frameWidth: 32, frameHeight: 48 });
+    this.load.image("ship", shipImg);
   }
 
   create() {
-    this.add.tileSprite(400, 300, 800, 600, "space");
-
     // Create Player                v--- we don't care about self id
     this.player = this.createPlayer(
       null,
