@@ -48,6 +48,16 @@ class Game extends Phaser.Scene {
       randomNumber(50, 550)
     );
 
+    this.particleEmitter = this.add.particles("bullet").createEmitter({
+      speed: { min: -800, max: 800 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1, end: 0 },
+      quantity: 10,
+      blendMode: "SCREEN",
+      lifespan: 200,
+      active: false
+    });
+
     // Create movement controller
     this.cursors = this.input.keyboard.createCursorKeys();
     this.spacebar = this.input.keyboard.addKey(
@@ -193,6 +203,11 @@ class Game extends Phaser.Scene {
       // destroy bullet
       bullet.setActive(false).setVisible(false);
       enemy.destroy();
+
+      // explode ship; particle animation
+      this.particleEmitter.active = true;
+      this.particleEmitter.setPosition(enemy.x, enemy.y);
+      this.particleEmitter.explode();
 
       if (this.player.active === false) {
         this.gameOverText = this.add.text(
