@@ -183,6 +183,18 @@ class Game extends Phaser.Scene {
           { fontSize: "32px", fill: "#fff" }
         );
 
+        this.playAgainText = this.add
+          .text(
+            this.game.config.width / 2,
+            this.game.config.height / 2 + 50,
+            "Play Again",
+            { fontSize: "20px", fill: "#fff" }
+          )
+          .setInteractive({ useHandCursor: true })
+          .on("pointerdown", () => {
+            this.handlePlayAgain();
+          });
+      }
       }
     }
   }
