@@ -20,6 +20,7 @@ class Game extends Phaser.Scene {
     // playerId -> player
     this.players = new Map();
 
+    this.handleEnemyHit = this.handleEnemyHit.bind(this);
     this.onClientMessage = this.onClientMessage.bind(this);
     this.sendPosThrottled = throttle(this.sendPosThrottled, 10);
 
@@ -174,7 +175,41 @@ class Game extends Phaser.Scene {
       // destroy bullet
       bullet.setActive(false).setVisible(false);
       enemy.destroy();
+
+      if (this.player.active === false) {
+        this.gameOverText = this.add.text(
+          this.game.config.width / 2,
+          this.game.config.height / 2,
+          "GAME OVER",
+          { fontSize: "32px", fill: "#fff" }
+        );
+
+        this.playAgainText = this.add
+          .text(
+            this.game.config.width / 2,
+            this.game.config.height / 2 + 50,
+            "Play Again",
+            { fontSize: "20px", fill: "#fff" }
+          )
+          .setInteractive({ useHandCursor: true })
+          .on("pointerdown", () => {
+            this.handlePlayAgain();
+          });
+      }
     }
+  }
+
+  handlePlayAgain() {
+    this.gameOverText.destroy();
+    this.playAgainText.destroy();
+
+    this.player = this.createPlayer(
+      null,
+      randomNumber(50, 750),
+      randomNumber(50, 550)
+    );
+
+    WS.Send.ReenterWorld();
   }
 
   removePlayer({ playerId }) {
