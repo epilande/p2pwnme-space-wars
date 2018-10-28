@@ -25,7 +25,6 @@ class Game extends Phaser.Scene {
     this.onClientMessage = this.onClientMessage.bind(this);
     this.sendPosThrottled = throttle(this.sendPosThrottled, 10);
 
-    WS.Connect();
     WS.Client.addEventListener(WS.Event.message, this.onClientMessage);
     WS.Client.addEventListener(WS.Event.open, this.onClientConnect);
     WS.Client.addEventListener(WS.Event.error, this.onClientError);
@@ -153,6 +152,9 @@ class Game extends Phaser.Scene {
     if (bullet) {
       bullet.fire(player);
       this.physics.add.collider(bullet, this.player, this.handleEnemyHit);
+      for (const otherPlayer of this.players.values()) {
+        this.physics.add.collider(bullet, otherPlayer, this.handleEnemyHit);
+      }
     }
   }
 
