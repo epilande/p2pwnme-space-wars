@@ -34,6 +34,9 @@ const WS = {
     EnterWorld: () => {
       WS.Client.send(OP.create(OP.ENTER_WORLD));
     },
+    ReenterWorld: () => {
+      WS.Client.send(OP.create(OP.REENTER_WORLD));
+    },
     MoveTo: position => {
       WS.Client.send(OP.create(OP.MOVE_TO, position));
     },

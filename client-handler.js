@@ -58,6 +58,15 @@ const receiveOp = function(msg) {
         });
       });
       break;
+    case OP.REENTER_WORLD:
+      players.forEach((player, playerUsername, map) => {
+        if (player === this) return;
+        player.sendOp(OP.NEW_PLAYER, {
+          playerId: this.playerId,
+          position: this.position
+        });
+      });
+      break;
     case OP.MOVE_TO:
       players.forEach((player, playerUsername, map) => {
         if (player === this) return;

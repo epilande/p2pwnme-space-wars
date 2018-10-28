@@ -20,6 +20,7 @@ class Game extends Phaser.Scene {
     // playerId -> player
     this.players = new Map();
 
+    this.handleEnemyHit = this.handleEnemyHit.bind(this);
     this.onClientMessage = this.onClientMessage.bind(this);
     this.sendPosThrottled = throttle(this.sendPosThrottled, 10);
 
@@ -195,8 +196,20 @@ class Game extends Phaser.Scene {
             this.handlePlayAgain();
           });
       }
-      }
     }
+  }
+
+  handlePlayAgain() {
+    this.gameOverText.destroy();
+    this.playAgainText.destroy();
+
+    this.player = this.createPlayer(
+      null,
+      randomNumber(50, 750),
+      randomNumber(50, 550)
+    );
+
+    WS.Send.ReenterWorld();
   }
 
   removePlayer({ playerId }) {
