@@ -60,9 +60,33 @@ class Game extends Phaser.Scene {
     });
 
     this.scoreText = this.add.text(20, 16, "Score: 0", {
-      fontSize: "32px",
+      fontSize: "24px",
       fill: "#fff"
     });
+
+    this.gameOverText = this.add
+      .text(
+        this.game.config.width / 2,
+        this.game.config.height / 2,
+        "GAME OVER",
+        { fontSize: "32px", fill: "#fff" }
+      )
+      .setActive(false)
+      .setVisible(false);
+
+    this.playAgainText = this.add
+      .text(
+        this.game.config.width / 2,
+        this.game.config.height / 2 + 50,
+        "Play Again",
+        { fontSize: "20px", fill: "#fff" }
+      )
+      .setActive(false)
+      .setVisible(false)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.handlePlayAgain();
+      });
 
     // Create movement controller
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -215,34 +239,20 @@ class Game extends Phaser.Scene {
       this.particleEmitter.explode();
 
       if (this.player.active) {
+        // You're a live and you scored!
         this.score += 1;
         this.scoreText.setText(`Score: ${this.score}`);
       } else if (this.player.active === false) {
-        this.gameOverText = this.add.text(
-          this.game.config.width / 2,
-          this.game.config.height / 2,
-          "GAME OVER",
-          { fontSize: "32px", fill: "#fff" }
-        );
-
-        this.playAgainText = this.add
-          .text(
-            this.game.config.width / 2,
-            this.game.config.height / 2 + 50,
-            "Play Again",
-            { fontSize: "20px", fill: "#fff" }
-          )
-          .setInteractive({ useHandCursor: true })
-          .on("pointerdown", () => {
-            this.handlePlayAgain();
-          });
+        // You got shot down!
+        this.gameOverText.setActive(true).setVisible(true);
+        this.playAgainText.setActive(true).setVisible(true);
       }
     }
   }
 
   handlePlayAgain() {
-    this.gameOverText.destroy();
-    this.playAgainText.destroy();
+    this.gameOverText.setActive(false).setVisible(false);
+    this.playAgainText.setActive(false).setVisible(false);
 
     this.score = 0;
     this.scoreText.setText(`Score: ${this.score}`);
