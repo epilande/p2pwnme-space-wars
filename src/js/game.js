@@ -152,6 +152,9 @@ class Game extends Phaser.Scene {
     if (bullet) {
       bullet.fire(player);
       this.physics.add.collider(bullet, this.player, this.handleEnemyHit);
+      for (const otherPlayer of this.players.values()) {
+        this.physics.add.collider(bullet, otherPlayer, this.handleEnemyHit);
+      }
     }
   }
 
