@@ -31,7 +31,7 @@ const Bullet = new Phaser.Class({
     this.x += this.xSpeed * delta;
     this.y += this.ySpeed * delta;
     this.born += delta;
-    if (this.born > 1800) {
+    if (this.born > 800) {
       this.setActive(false);
       this.setVisible(false);
     }
