@@ -174,6 +174,16 @@ class Game extends Phaser.Scene {
       // destroy bullet
       bullet.setActive(false).setVisible(false);
       enemy.destroy();
+
+      if (this.player.active === false) {
+        this.gameOverText = this.add.text(
+          this.game.config.width / 2,
+          this.game.config.height / 2,
+          "GAME OVER",
+          { fontSize: "32px", fill: "#fff" }
+        );
+
+      }
     }
   }
 
