@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import throttle from "lodash/throttle";
 
-import spaceImg from "../assets/space.jpg";
 import shipImg from "../assets/ship.png";
 import bulletImg from "../assets/bullets.png";
 
+import constants from "./constants";
 import { randomNumber } from "./utils";
 import Bullet from "./bullet";
 import OP from "./OP";
@@ -29,17 +29,18 @@ class Game extends Phaser.Scene {
     WS.Client.addEventListener(WS.Event.open, this.onClientConnect);
     WS.Client.addEventListener(WS.Event.error, this.onClientError);
     WS.Client.addEventListener(WS.Event.close, this.onClientClose);
+
+    this.resize();
+
+    window.addEventListener("resize", this.resize, false);
   }
 
   preload() {
-    this.load.image("space", spaceImg);
     this.load.image("bullet", bulletImg);
-    this.load.spritesheet("ship", shipImg, { frameWidth: 32, frameHeight: 48 });
+    this.load.image("ship", shipImg);
   }
 
   create() {
-    this.add.tileSprite(400, 300, 800, 600, "space");
-
     // Create Player                v--- we don't care about self id
     this.player = this.createPlayer(
       null,
@@ -64,6 +65,23 @@ class Game extends Phaser.Scene {
     }
 
     this.physics.world.wrap(this.player, 20);
+  }
+
+  resize() {
+    const canvas = document.querySelector("canvas");
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const windowRatio = windowWidth / windowHeight;
+    console.log("this.game: ", this);
+    const gameRatio = constants.WIDTH / constants.HEIGHT;
+
+    if (windowRatio < gameRatio) {
+      canvas.style.width = windowWidth + "px";
+      canvas.style.height = windowWidth / gameRatio + "px";
+    } else {
+      canvas.style.width = windowHeight * gameRatio + "px";
+      canvas.style.height = windowHeight + "px";
+    }
   }
 
   handleOtherPlayerMovement(playerUpdate) {
@@ -205,8 +223,8 @@ class Game extends Phaser.Scene {
 
     this.player = this.createPlayer(
       null,
-      randomNumber(50, 750),
-      randomNumber(50, 550)
+      randomNumber(50, constants.WIDTH - 50),
+      randomNumber(50, constants.HEIGHT - 50)
     );
 
     WS.Send.ReenterWorld();
